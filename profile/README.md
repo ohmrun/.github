@@ -1,4 +1,4 @@
-This is a collection of Haxe libraries in the functional stype intended to cover most functionality you'd need to bring the pertinent parts of your programming up front.
+This is a collection of Haxe libraries in the functional style intended to cover most functionality you'd need to bring the pertinent parts of your programming up front.
 
 It covers async handling, control flow, composition, parsing, logging, errors, testing, dependency injection, configuration, scheduling and data types that can cover the full range of needs in a coherent way with a carefully constructed, consistent Api.
 
@@ -51,14 +51,61 @@ Creating a `Wildcard` static extension is as simple as
 
 ### Coherent Async Story
 
-There are fine grained return types for Error handling in functional programming style, with a simple API that can 
+There are fine grained return types for async handling in functional programming style, with a simple API that can 
 be lifted from synchronous to asynchronous functionality very simply.
 
 in `stx.Nano`
 
-`Report` is an optional `Refuse` with `Alert` being the asynchronous version
+`Report` is an optional `Refuse` with `Alert` being the asynchronous version  
+
+```haxe
+  __.report();//produces `Happened`
+
+  var report  = __.report(f -> f.of(OhNoes));//injects Fault, expexts `Reported<Refuse<E>>`
+  var alert   = report.alert();//Future<Report<E>>
+```
 `Res` is either some value, or some `Refuse` (see stx.Fail) with `Pledge` being the async version.
 
+
+```haxe
+  __.accept(true);//produces `Accept(true)`;
+  var res     = __.reject(__.fault().of(Whassat))// produces `Reject(Whassat)`;
+  var pledge  = res.pledge()// Future<Res<T,E>> known as Pledge<T,E>
+```
+
+You can conditionally handle parts of the Res/Pledge structure.
+
+either:
+ //point  
+`Res<R,E> -> (R -> Report<E>) -> Report<E>`  
+or:   
+//point
+`Pledge<R,E> -> (R -> Report<E>) -> Alert<E>`
+
+```haxe
+  var res = __.accept(true);
+  var eaten = res.point(
+    (b:Bool) -> {
+      final is_ok = some_outside_handler(b);
+      return is_ok ? __.report() : __.report(f -> f.of(SomethingWentWrong));
+    }
+  );
+```
+
+And there are various different mechanisms to carve out error subsets, integrate to upstream systems and produce cleaned values.
+
+```haxe
+  enum SubSystemError{
+    OOF;
+  }
+  enum SuperSystemError{
+    Wot(err:SubSystemError)
+  }
+  function test_error(){
+    final oops = __.fault().of(OOF);//Refuse<SubSystemError>;
+    final upstream = oops.errate(Wot);//Refuse<SuperSystemError>;
+  }
+```
 Each of these are monad instances with a couple extra methods for integration.
 
 ### Advanced Programming Space.     
