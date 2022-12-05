@@ -1,6 +1,6 @@
 This is a collection of Haxe libraries in the functional style intended to cover most functionality you'd need to bring the pertinent parts of your programming up front.
 
-It covers async handling, control flow, composition, parsing, logging, errors, testing, dependency injection, configuration, scheduling and data types that can cover the full range of needs in a coherent way with a carefully constructed, consistent Api.
+It covers async handling, control flow, composition, parsing, logging, errors, testing, dependency injection, assertions,comparisions and equalities, configuration, immutable datastructres, scheduling and data types that can cover the full range of needs in a granular way with a carefully constructed, consistent Api.
 
 It's by no means complete, and not documented well presently, but the programming style is well balanced, and traces the extents of the Haxe type system well.
 
@@ -14,6 +14,11 @@ using stx.Log;
 
 Each library can be used in full with a one liner: `using stx.****` 
 
+#### Stays out the way.
+
+`stx.Pico` contains haxe std overrides, all other libraries should not pollute any namespace (to whit:bug reports, although it's 90%).
+
+typically `stx.$lib.core.*` is used for common names that might and `using stx.$lib.Core;` used to override that.
 
 ### Wildcard Static Extensions
 
@@ -24,7 +29,7 @@ using stx.Assert;
 
 function assert(){
   var a = null;
-  __.assert().exists(a)//throws error
+  __.assert().exists(a);//throws error
   //or
   __.assert().that().exists().apply(a);//Forward optional error.
 }
@@ -41,14 +46,20 @@ Creating a `Wildcard` static extension is as simple as
   }
   private class Module{
     public function new(){}
+    public function SomeTypeConstructor(){
+      return new SomeTypeConstructor();
+    }
+  }
+  private class SomeTypeConstructor{
+    public function new(){}
   }
   class Main{
     static public function main(){
       final module = __.insertion_point();//Instance of Module
+      final value  = module.SomeTypeConstructor();
     }
   }
 ```
-
 ### Coherent Async Story
 
 There are fine grained return types for async handling in functional programming style, with a simple API that can 
@@ -75,12 +86,16 @@ in `stx.Nano`
 
 You can conditionally handle parts of the Res/Pledge structure.
 
-either:
- //point  
-`Res<R,E> -> (R -> Report<E>) -> Report<E>`  
-or:   
+either:  
+```haxe
 //point
-`Pledge<R,E> -> (R -> Report<E>) -> Alert<E>`
+Res<R,E> -> (R -> Report<E>) -> Report<E>
+```
+or:   
+```haxe
+//point  
+Pledge<R,E> -> (R -> Report<E>) -> Alert<E>
+```
 
 ```haxe
   var res = __.accept(true);
@@ -89,7 +104,7 @@ or:
       final is_ok = some_outside_handler(b);
       return is_ok ? __.report() : __.report(f -> f.of(SomethingWentWrong));
     }
-  );
+  );//Report<E>
 ```
 
 And there are various different mechanisms to carve out error subsets, integrate to upstream systems and produce cleaned values.
@@ -99,7 +114,7 @@ And there are various different mechanisms to carve out error subsets, integrate
     OOF;
   }
   enum SuperSystemError{
-    Wot(err:SubSystemError)
+    Wot(err:SubSystemError);
   }
   function test_error(){
     final oops = __.fault().of(OOF);//Refuse<SubSystemError>;
@@ -110,13 +125,14 @@ Each of these are monad instances with a couple extra methods for integration.
 
 ### Advanced Programming Space.     
     
-    
-Beyond Futures and Streams lie `stx.Fletcher`, `stx.Coroutines` and `stx.Proxy`, capable of sophisticated interpolation and ordering schemes over bi-directional streaming data, and a complete set of primitives to describe any operation existing between functions, the ordering of their effects, and the scheduling of those effects.
+Beyond Futures and Streams lie `stx.Fletcher`, `stx.Coroutines` and `stx.Proxy`, capable of sophisticated interpolation,ordering schemes and partial applications over bi-directional streaming data, and a complete set of primitives to describe any operation existing in the space between functions, and the customisable scheduling of their closures and effects.
 
 ```haxe
   //Describes a composable arrowlet/function that can return work for a scheduler to perform.
   typedef FletcherDef<P,R> = P -> (Void -> R) -> Work
 ```
+
+Ambiguous remote response datatypes and combinators are also to be found, although they're a little less mature.
 
 ### Highly Speciated Errors
 
@@ -142,6 +158,10 @@ Much of Haxe's strengh lies in integrating with pre-existing systems. `stx.Fail`
   function error_test(){
     final refuse : Refuse<ErrorEnum> = __.fault().of(OhNoes)//Error at exact Pos to be passed around;
     final digest : Refuse<ErrorEnum> = __.fault().explain(e -> e.hidden_digest())//compatible with Refuse<ErrorEnum> but hidden for many of the composition functions as considered to be unrecoverable.
-    final composition = refuse.concat(digest);//collect all the errors
+    final composition                = refuse.concat(digest);//collect all the errors
   }
 ```
+
+### Immutable Datastructures
+
+Including LinkedList, RedBlackSet, RedBlackMap, BTree, KTree and Graph.
