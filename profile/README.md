@@ -81,7 +81,7 @@ in `stx.Nano`
 ```haxe
   __.accept(true);//produces `Accept(true)`;
   var res     = __.reject(__.fault().of(Whassat))// produces `Reject(Whassat)`;
-  var pledge  = res.pledge()// Future<Res<T,E>> known as Pledge<T,E>
+  var pledge  = res.pledge()// Future<Upshot<T,E>> known as Pledge<T,E>
 ```
 
 You can conditionally handle parts of the Res/Pledge structure.
@@ -89,7 +89,7 @@ You can conditionally handle parts of the Res/Pledge structure.
 either:  
 ```haxe
 //point
-Res<R,E> -> (R -> Report<E>) -> Report<E>
+Upshot<R,E> -> (R -> Report<E>) -> Report<E>
 ```
 or:   
 ```haxe
