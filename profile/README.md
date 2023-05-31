@@ -1,6 +1,6 @@
 This is a collection of Haxe libraries in the functional style intended to cover most functionality you'd need to bring the pertinent parts of your programming up front.
 
-It covers async handling, control flow, composition, parsing, logging, errors, testing, dependency injection, assertions,comparisions and equalities, configuration, immutable datastructres, scheduling and data types that can cover the full range of needs in a granular way with a carefully constructed, consistent Api.
+It covers [async handling](github.com/ohmrun/fletcher/), control flow, composition, parsing, logging, errors, testing, dependency injection, assertions,comparisions and equalities, configuration, immutable datastructres, scheduling and data types that can cover the full range of needs in a granular way with a carefully constructed, consistent Api.
 
 It's by no means complete, and not documented well presently, but the programming style is well balanced, and traces the extents of the Haxe type system well.
 
