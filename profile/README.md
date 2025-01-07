@@ -67,15 +67,15 @@ be lifted from synchronous to asynchronous functionality very simply.
 
 in `stx.Nano`
 
-`Report` is an optional `Refuse` with `Alert` being the asynchronous version  
+`Report` is an optional `Error` with `Alert` being the asynchronous version  
 
 ```haxe
   __.report();//produces `Happened`
 
-  var report  = __.report(f -> f.of(OhNoes));//injects Fault, expexts `Reported<Refuse<E>>`
+  var report  = __.report(f -> f.of(OhNoes));//injects Fault, expexts `Reported<Error<E>>`
   var alert   = report.alert();//Future<Report<E>>
 ```
-`Res` is either some value, or some `Refuse` (see stx.Fail) with `Pledge` being the async version.
+`Res` is either some value, or some `Error` (see stx.Fail) with `Pledge` being the async version.
 
 
 ```haxe
@@ -117,8 +117,8 @@ And there are various different mechanisms to carve out error subsets, integrate
     Wot(err:SubSystemError);
   }
   function test_error(){
-    final oops = __.fault().of(OOF);//Refuse<SubSystemError>;
-    final upstream = oops.errate(Wot);//Refuse<SuperSystemError>;
+    final oops = __.fault().of(OOF);//Error<SubSystemError>;
+    final upstream = oops.errate(Wot);//Error<SuperSystemError>;
   }
 ```
 Each of these are monad instances with a couple extra methods for integration.
@@ -141,24 +141,27 @@ Much of Haxe's strengh lies in integrating with pre-existing systems. `stx.Fail`
 #### Main.hx
 ```haxe
   using Main;
-  using stx.Nano;
+  using stx.Pico;
 
   enum ErrorEnum{
     OhNoes;
   }
-  class HiddenDigest extends Digest{
-    public function new(){
-      super("completely_unique_id","could be from a catch statement",500);
+  class HiddenDigest extends DigestCls{
+    static public function make(?pos:Pos){
+      return new HiddenDigest(pos);
+    }
+    public function new(?pos:Pos){
+      super("completely_unique_id","could be from a catch statement",_ -> _.Available(pos),500);
     }
     //the __.fault().explain function injects a lambda with a `Digests` wildcard that you can use.
     static public function hidden_digest(wildcard:Digests){
-      return new HiddenDigest();
+      return HiddenDigest.make;
     }
   }
   function error_test(){
-    final refuse : Refuse<ErrorEnum> = __.fault().of(OhNoes)//Error at exact Pos to be passed around;
-    final digest : Refuse<ErrorEnum> = __.fault().explain(e -> e.hidden_digest())//compatible with Refuse<ErrorEnum> but hidden for many of the composition functions as considered to be unrecoverable.
-    final composition                = refuse.concat(digest);//collect all the errors
+    final refuse : Error<ErrorEnum>   = __.fault().of(OhNoes)//Error at exact Pos to be passed around;
+    final digest : Error<ErrorEnum>   = __.fault().digest(e -> e.hidden_digest())//compatible with Error<ErrorEnum> but hidden for many of the composition functions as considered to be unrecoverable.
+    final composition                 = refuse.defect(digest);//collect all the errors
   }
 ```
 
