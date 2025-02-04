@@ -138,33 +138,14 @@ Ambiguous remote response datatypes and combinators are also to be found, althou
 
 Much of Haxe's strengh lies in integrating with pre-existing systems. `stx.Fail` allows for fine grained control over known and unknown errors and provides the discipline to take on any and all states of your program.
 
-#### Main.hx
 ```haxe
-  using Main;
-  using stx.Pico;
+enum Failures{
+  SysFail;
+}
+final err   : Error<Failures> = __.fault().of(SysFail);
+final errI  : Error<Failures> = __.fault().digest(_ -> (pos:Pos) -> )
 
-  enum ErrorEnum{
-    OhNoes;
-  }
-  class HiddenDigest extends DigestCls{
-    static public function make(?pos:Pos){
-      return new HiddenDigest(pos);
-    }
-    public function new(?pos:Pos){
-      super("completely_unique_id","could be from a catch statement",_ -> _.Available(pos),500);
-    }
-    //the __.fault().explain function injects a lambda with a `Digests` wildcard that you can use.
-    static public function hidden_digest(wildcard:Digests){
-      return HiddenDigest.make;
-    }
-  }
-  function error_test(){
-    final refuse : Error<ErrorEnum>   = __.fault().of(OhNoes)//Error at exact Pos to be passed around;
-    final digest : Error<ErrorEnum>   = __.fault().digest(e -> e.hidden_digest())//compatible with Error<ErrorEnum> but hidden for many of the composition functions as considered to be unrecoverable.
-    final composition                 = refuse.defect(digest);//collect all the errors
-  }
 ```
-
 ### Immutable Datastructures
 
 Including LinkedList, RedBlackSet, RedBlackMap, BTree, KTree and Graph.
